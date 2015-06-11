@@ -34,6 +34,10 @@
             position: absolute;
             box-shadow: 0 0 15px 7px rgba(0,0,0,0.75) !important;
         }
+        .reveal h1{
+          text-shadow: none;
+          font-size: 3em;
+        }
     </style>
     <!-- Code syntax highlighting -->
     <link rel="stylesheet" href="../bower_components/reveal.js/lib/css/zenburn.css">
@@ -58,12 +62,12 @@
 <div class="slides">
 
 <section>
-    <h2>Better Unit Testing in ReactJS</h2>
-    <h4>with <a href="https://github.com/dataminr/expanded-react-test-utils">expanded-react-test-utils</a></h4>
+    <h1>Better Unit Testing in ReactJS</h1>
+    <h3>with <a href="https://github.com/dataminr/expanded-react-test-utils">expanded-react-test-utils</a></h3>
     <p>
-        <small><a href="https://github.com/jasonjohnson115">Jason Johnson</a> / <a href="http://twitter.com/jasonjohnson115">@jasonjohnson115</a></small>
+        <a href="https://github.com/jasonjohnson115">Jason Johnson</a> / <a href="http://twitter.com/jasonjohnson115">@jasonjohnson115</a>
         <br/>
-        <small><a href="https://github.com/ernieturner">Ernie Turner</a> / <a href="http://twitter.com/erniewturner">@erniewturner</a></small>
+        <a href="https://github.com/ernieturner">Ernie Turner</a> / <a href="http://twitter.com/erniewturner">@erniewturner</a>
     </p>
 </section>
 
@@ -82,7 +86,7 @@
 </section>
 
 <section>
-    <h2>Graphs Without a Vertical Axis!</h2>
+    <h2>Graphs Without Labels!</h2>
     <img src="img/popularity.png"/>
 </section>
 
@@ -161,7 +165,7 @@ getAgeToggleMarkup: function(key, enabled) {
           id={key}
           type="checkbox"
           checked={enabled}
-          onChange={this.toggleAgeHandler.bind(this, key)}
+          onChange={this.toggleAgeHandler}
       /&gt;
       &lt;label htmlFor={key}>
           {this.props.ageData[key].label}
@@ -200,42 +204,44 @@ beforeEach(function(){
     <pre><code data-trim class="js">
 //Call function to test
 var control =
-    controlsInstance.getAgeToggleMarkup('category', true);
+    controlsInstance.getAgeToggleMarkup('underFive', true);
     </code></pre>
 
     <pre class="fragment"><code data-trim class="js">
 //Grab elements at proper child index
 var checkbox = control.props.children[0],
-    label = control.props.children[1];
+    label    = control.props.children[1];
     </code></pre>
 
     <pre class="fragment"><code data-trim class="js">
 //Assertions
 expect(checkbox.props.checked).toBeTrue();
-expect(checkbox.props.id).toEqual('category');
-expect(label.props.children).toEqual('Category');
+expect(checkbox.props.id).toEqual('underFive');
+expect(label.props.children).toEqual('Under 5');
     </code></pre>
 </section>
 
 <section>
-    <h2>Subrender and Tag Query</h2>
+    <h2>Partial Render and Tag Query</h2>
     <ul>
         <li>[find/scry]RenderedDOMComponentWithTag</li>
         <li>[find/scry]RenderedDOMComponentWithClass</li>
     </ul>
+    <img src="img/scryDef.png"/>
+    <div>Requires React tree to have been rendered before use</div>
 </section>
 
 <section>
-    <h2>Subrender and Tag Query</h2>
+    <h2>Partial Render and Tag Query</h2>
     <pre><code data-trim class="js">
 //Call function to test
-var control =
-    controlsInstance.getAgeToggleMarkup('category', true);
+var controlMarkup =
+    controlsInstance.getAgeToggleMarkup('underFive', true);
     </code></pre>
 
     <pre class="fragment"><code data-trim class="js">
 //Render view partial
-var markup = RTU.renderIntoDocument(control);
+var markup = RTU.renderIntoDocument(controlMarkup);
     </code></pre>
 
     <pre class="fragment"><code data-trim class="js">
@@ -250,8 +256,8 @@ var label =
     <pre class="fragment"><code data-trim class="js">
 //Assertions
 expect(checkbox.props.checked).toBeTrue();
-expect(checkbox.props.id).toEqual('category');
-expect(label.props.children).toEqual('Category');
+expect(checkbox.props.id).toEqual('underFive');
+expect(label.props.children).toEqual('Under 5');
     </code></pre>
 </section>
 
@@ -270,15 +276,34 @@ expect(label.props.children).toEqual('Category');
 </section>
 
 <section>
+  <h2>Checkbox Toggle Handler</h2>
+  <pre><code data-trim class="js">
+&lt;input
+  id={key}
+  type="checkbox"
+  checked={enabled}
+  onChange={this.toggleAgeHandler}
+/&gt;
+    </code></pre>
+    <br/>
+    <pre class="fragment"><code data-trim class="js">
+toggleAgeHandler: function(event) {
+  var key = event.target.id;
+  AgeStore.toggleAgeSelected(key);
+},
+    </code></pre>
+</section>
+
+<section>
     <pre><code data-trim class="js">
 //Spy on function we expected to be called
 spyOn(AgeStore, 'toggleAgeSelected');
     </code></pre>
 
     <pre class="fragment" style="font-size: 47%"><code data-trim class="js">
-//Find a specific checkbox to toggle
-var checkbox = ExpandedTestUtils.
-  findRenderedDOMComponentWithSelector(controlsInstance,'#category');
+//Find a checkbox to toggle
+var checkbox = ReactTestUtils.
+  scryRenderedDOMComponentWithTag(controlsInstance, 'input')[0];
     </code></pre>
 
     <pre class="fragment"><code data-trim class="js">
@@ -289,12 +314,37 @@ ReactTestUtils.Simulate.change(checkbox.getDOMNode());
     <pre class="fragment"><code data-trim class="js">
 //Assertions
 expect(AgeStore.toggleAgeSelected).
-    toHaveBeenCalledWith('category');
+    toHaveBeenCalledWith('underFive');
     </code></pre>
 </section>
 
 <section>
     <h2>Expanded React Test Utils</h2>
+</section>
+
+<section>
+    <h2>Page Component</h2>
+    <pre><code data-trim class="js">
+render: function() {
+  return (
+    &lt;div className="page"&gt;
+      &lt;div className="header-title"&gt;
+        &lt;h1&gt;County Population by Age Range&lt;/h1&gt;
+      &lt;/div&gt;
+
+      &lt;Controls
+        ageData={this.ageData}
+        selectedAges={this.state.selectedAges} /&gt;
+      &lt;List
+        ageData={this.ageData}
+        selectedAges={this.state.selectedAges} /&gt;
+      &lt;StateMap
+        ageData={this.ageData}
+        selectedAges={this.state.selectedAges} /&gt;
+    &lt;/div&gt;
+  );
+}
+    </code></pre>
 </section>
 
 <section>
@@ -310,9 +360,11 @@ expect(AgeStore.toggleAgeSelected).
     <pre><code data-trim class="js">
 beforeAll(function(){
   ExpandedTestUtils.mockReactComponent({
+
     Controls: {className: 'mock-controls'},
-    List: {className: 'mock-list'},
+    List:     {className: 'mock-list'},
     StateMap: {className: 'mock-state-map'}
+
   });
 });
     </code></pre>
@@ -321,7 +373,7 @@ beforeAll(function(){
 var controlsInstance = ReactTestUtils.
   findRenderedDOMComponentWithClass('mock-controls');
 
-expect(controlsInstance.props.something).toEqual('value');
+expect(controlsInstance.props.selectedAges).toEqual({...});
     </code></pre>
 </section>
 
@@ -329,22 +381,50 @@ expect(controlsInstance.props.something).toEqual('value');
     <h3>[find/scry]RenderedDOMComponentsWithSelector</h3>
     <ul>
         <li>Simple selector using classes, tags, IDs</li>
-        <li>Pseudo selectors not yet supported
+        <li>Pseudo selectors not yet supported</li>
     </ul>
 </section>
 
 <section>
     <pre><code data-trim class="js">
-findRenderedDOMComponentsWithSelector(
+<div>
+  <ul id="user-list">
+    ...
+  </ul>
+  <ul id="company-list">
+    ...
+  </ul>
+</div>
+    </code></pre>
+    <pre class="fragment"><code data-trim class="js">
+scryRenderedDOMComponentsWithSelector(
     instance,
-    '.user-list li.last'
+    '#user-list li'
 );
     </code></pre>
+</section>
 
-        <pre><code data-trim class="js">
+<section>
+    <h2>Find component using tags and classes</h2>
+    <pre><code data-trim class="js">
+<div class="current-status">
+  <span class="failed">
+    <span>Request failed...</span>
+    <button>Retry</button>
+  </span>
+
+  <span class="passed">
+    <span>Request completed successfully</span>
+    <button>Ok</button>
+  </span>
+  ...
+</div>
+    </code></pre>
+
+    <pre class="fragment"><code data-trim class="js">
 findRenderedDOMComponentsWithSelector(
     instance,
-    '#county-list a'
+    '.current-status .passed button'
 );
     </code></pre>
 </section>
@@ -401,64 +481,36 @@ findRenderedDOMComponentsWithSelector(
 </section>
 
 <section>
-    <h3>Run Unit Tests and Check for Lint</h3>
-    <pre><code  data-trim class="js">
-grunt.registerTask('test',[
-  'shell:cleanCompiledDirectory',
-  'shell:jsxCompile',
-  'eslint',
-  'jasmine:cov'
-]);
-    </code></pre>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><b style="color: cornflowerblue">Static code analysis</b></li>
+        <li>Run unit tests
+            <ul>
+                <li>Command Line
+                    <ul>
+                        <li>All tests</li>
+                        <li>Filter folder or file</li>
+                        <li>Easy access to failures</li>
+                    </ul>
+                </li>
+                <li>Browser
+                    <ul>
+                        <li>Debug unit tests and code</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>Code coverage inspection and thresholds</li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
 </section>
 
 <section>
-    <h3>Run Unit Tests and Open in Browser to Debug</h3>
-    <pre><code  data-trim class="js">
-grunt.registerTask('jasmineDebug', [
-  'jasmine:debug',
-  'open:test',
-  'connect'
-]);
+    <h2>Static Code Analysis</h2>
+    <pre><code data-trim class="js">
+grunt eslint
     </code></pre>
-</section>
-
-<section>
-    <h3>Run Test Task and Open Test Coverage Results</h3>
-    <pre><code  data-trim class="js">
-grunt.registerTask('test:cov',[
-  'test',
-  'open:cov',
-  'connect'
-]);
-    </code></pre>
-</section>
-
-<section>
-    <h2>Task Configuration</h2>
-    <pre style="font-size: .4em"><code data-trim class="js">
-var port = '9001';
-var connect = require('../node_modules/grunt-contrib-connect/tasks/connect');
-var jasmineConfig = {
-  src: ['app/compiled/**/*.js', '!app/compiled/lib/*',
-        '!app/compiled/main.js', '!app/compiled/**/tests/*.js'],
-  specs: ['app/compiled/**/*.test.js'],
-  helpers: [
-    'app/compiled/tests/bind-polyfill.js',
-    'bower_components/jasmine-expect/dist/jasmine-matchers.js'
-  ],
-  requireConfigFile: 'app/require.config.js',
-  compiledDir: 'app/compiled',
-  paths: {
-    ExpandedTestUtils: '../../dist/ExpandedTestUtils.min'
-  }
-};
-    </code></pre>
-</section>
-
-<section>
-    <h2>Linting Task</h2>
-    <pre><code>
+    <pre><code data-trim class="js">
 eslint:{
   target: [
     'app/**/*.js',
@@ -509,7 +561,215 @@ var unusedVar = 'What am I doing here?';
 </section>
 
 <section>
-    <h2>Debug Task</h2>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li>Run unit tests
+            <ul>
+                <li>Command Line
+                    <ul>
+                        <li><b style="color: cornflowerblue">All tests</b></li>
+                        <li>Filter folder or file</li>
+                        <li>Easy access to failures</li>
+                    </ul>
+                </li>
+                <li>Browser
+                    <ul>
+                        <li>Debug unit tests and code</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>Code coverage inspection and thresholds</li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Lint and then Run Tests </h2>
+    <h4>Used by CI</h4>
+    <pre><code data-trim class="js">
+grunt test
+    </code></pre>
+    <pre><code data-trim class="js">
+grunt.registerTask('test',[
+  'shell:cleanCompiledDirectory',
+  'shell:jsxCompile',
+  'eslint',
+  'jasmine:cov'
+]);
+    </code></pre>
+    <img src="img/grunt_test.png" />
+</section>
+
+<section>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li>Run unit tests
+            <ul>
+                <li>Command Line
+                    <ul>
+                        <li><strike style="color: dimgrey">All tests</strike></li>
+                        <li><b style="color: cornflowerblue">Filter folder or file</b></li>
+                        <li>Easy access to failures</li>
+                    </ul>
+                </li>
+                <li>Browser
+                    <ul>
+                        <li>Debug unit tests and code</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>Code coverage inspection and thresholds</li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Filter When Running Tests</h2>
+    <ul>
+        <li>Don't lint</li>
+        <li>Don't fail on coverage thresholds</li>
+    </ul>
+    <pre><code  data-trim class="js">
+grunt jasmineFilter --filter {/folder|file}
+    </code></pre>
+    <pre><code  data-trim class="js">
+grunt.registerTask('jasmineFilter',[
+  'jasmine:cov'
+]);
+    </code></pre>
+</section>
+
+<section>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li>Run unit tests
+            <ul>
+                <li>Command Line
+                    <ul>
+                        <li><strike style="color: dimgrey">All tests</strike></li>
+                        <li><strike style="color: dimgrey">Filter folder or file</strike></li>
+                        <li><b style="color: cornflowerblue">Easy access to failures</b></li>
+                    </ul>
+                </li>
+                <li>Browser
+                    <ul>
+                        <li>Debug unit tests and code</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>Code coverage inspection and thresholds</li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
+</section>
+
+<section>
+    <pre><code  data-trim class="js">summary: true</code></pre>
+    <img src="img/test_failures.png" />
+</section>
+
+<section>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li>Run unit tests
+            <ul>
+                <li><strike style="color: dimgrey">Command Line</strike>
+                    <ul>
+                        <li><strike style="color: dimgrey">All tests</strike></li>
+                        <li><strike style="color: dimgrey">Filter folder or file</strike></li>
+                        <li><strike style="color: dimgrey">Easy access to failures</strike></li>
+                    </ul>
+                </li>
+                <li>Browser
+                    <ul>
+                        <li><b style="color: cornflowerblue">Debug unit tests and code</b></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li>Code coverage inspection and thresholds</li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Debug Unit Tests and Code</h2>
+    <pre><code  data-trim class="js">
+        grunt jasmineDebug --filter {/folder|file}
+    </code></pre>
+    <pre><code  data-trim class="js">
+grunt.registerTask('jasmineDebug', [
+  'jasmine:debug',
+  'open:test',
+  'connect'
+]);
+    </code></pre>
+</section>
+
+<section>
+    <h2>Task Requirements</h2>
+    <ul>
+        <li>Open a URL from a Grunt task</li>
+        <li>Start a Connect server</li>
+        <li>Project Configuration</li>
+    </ul>
+</section>
+
+<section>
+    <h3>Open URL and Start Server for Debugging or Coverage</h3>
+    <pre style="font-size: .4em"><code data-trim class="js">
+open: {
+  test: {
+    path: 'http://localhost:<%= connect.all.options.port%>/_SpecRunner.html'
+  },
+  cov: {
+    path: 'http://localhost:<%= connect.all.options.port%>/bin/'
+  }
+}
+    </code></pre>
+    <pre style="font-size: .4em"><code data-trim class="js">
+connect: {
+  all: {
+    options: {
+      port: port,
+      hostname: "0.0.0.0",
+      keepalive: true
+    }
+  }
+},
+    </code></pre>
+</section>
+
+<section>
+    <h2>Project Configuration</h2>
+    <pre style="font-size: .4em"><code data-trim class="js">
+var port = '9001';
+var connect = require('../node_modules/grunt-contrib-connect/tasks/connect');
+var jasmineConfig = {
+  src: ['app/compiled/**/*.js', '!app/compiled/lib/*',
+        '!app/compiled/main.js', '!app/compiled/**/tests/*.js'],
+  specs: ['app/compiled/**/*.test.js'],
+  helpers: [
+    'app/compiled/tests/bind-polyfill.js',
+    'bower_components/jasmine-expect/dist/jasmine-matchers.js'
+  ],
+  requireConfigFile: 'app/require.config.js',
+  compiledDir: 'app/compiled',
+  paths: {
+    ExpandedTestUtils: '../../dist/ExpandedTestUtils.min'
+  }
+};
+    </code></pre>
+</section>
+
+<section>
+    <h2>Task Configuration</h2>
     <pre><code data-trim class="js">
 debug: {
   src: jasmineConfig.src,
@@ -531,12 +791,50 @@ debug: {
 </section>
 
 <section>
-    <h2>Jasmine Debug</h2>
     <img src="img/jasmineDebug.png" />
 </section>
 
 <section>
-    <h2>Test with Coverage Task</h2>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li><strike style="color: dimgrey">Run unit tests</strike>
+            <ul>
+                <li><strike style="color: dimgrey">Command Line</strike>
+                    <ul>
+                        <li><strike style="color: dimgrey">All tests</strike></li>
+                        <li><strike style="color: dimgrey">Filter folder or file</strike></li>
+                        <li><strike style="color: dimgrey">Easy access to failures</strike></li>
+                    </ul>
+                </li>
+                <li><strike style="color: dimgrey">Browser</strike>
+                    <ul>
+                        <li><strike style="color: dimgrey">Debug unit tests and code</strike></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li><b style="color: cornflowerblue">Code coverage inspection and thresholds</b></li>
+        <li>Run CI when pushing code and creating pull requests</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Code Coverage Inspection</h2>
+    <pre><code  data-trim class="js">
+grunt test:cov
+    </code></pre>
+    <pre><code  data-trim class="js">
+grunt.registerTask('test:cov',[
+  'test',
+  'open:cov',
+  'connect'
+]);
+    </code></pre>
+</section>
+
+<section>
+    <h2>Task Configuration</h2>
     <pre style="font-size: .35em"><code data-trim class="js">
 cov: {
   src: jasmineConfig.src,
@@ -549,12 +847,12 @@ cov: {
       replace: false,
       coverage: 'bin/coverage/app/coverage.json',
       report: 'bin/coverage/app',
-      thresholds: {
+      thresholds: grunt.cli.tasks[0] === "test" ? {
         lines: 90,
         statements: 90,
         branches: 50,
         functions: 75
-      },
+      } : {},
       template: require('grunt-template-jasmine-requirejs'),
       templateOptions: {
         requireConfigFile: jasmineConfig.requireConfigFile,
@@ -588,29 +886,28 @@ cov: {
 </section>
 
 <section>
-    <h3>Start Server and Open URL for Tests or Coverage</h3>
-    <pre style="font-size: .4em"><code>
-connect: {
-  all: {
-    options: {
-      port: port,
-      hostname: "0.0.0.0",
-      keepalive: true
-    }
-  }
-},
-    </code></pre>
-
-    <pre class="fragment" style="font-size: .4em"><code>
-open: {
-  test: {
-    path: 'http://localhost:<%= connect.all.options.port%>/_SpecRunner.html'
-  },
-  cov: {
-    path: 'http://localhost:<%= connect.all.options.port%>/bin/'
-  }
-}
-    </code></pre>
+    <h2>Unit Testing Necessities</h2>
+    <ul>
+        <li><strike style="color: dimgrey">Static code analysis</strike></li>
+        <li><strike style="color: dimgrey">Run unit tests</strike>
+            <ul>
+                <li><strike style="color: dimgrey">Command Line</strike>
+                    <ul>
+                        <li><strike style="color: dimgrey">All tests</strike></li>
+                        <li><strike style="color: dimgrey">Filter folder or file</strike></li>
+                        <li><strike style="color: dimgrey">Easy access to failures</strike></li>
+                    </ul>
+                </li>
+                <li><strike style="color: dimgrey">Browser</strike>
+                    <ul>
+                        <li><strike style="color: dimgrey">Debug unit tests and code</strike></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li><strike style="color: dimgrey">Code coverage inspection and thresholds</strike></li>
+        <li><b style="color: cornflowerblue">Run CI when pushing code and creating pull requests</b></li>
+    </ul>
 </section>
 
 <section>
